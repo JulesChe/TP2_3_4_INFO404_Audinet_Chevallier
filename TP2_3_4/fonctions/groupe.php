@@ -49,7 +49,16 @@
 		@return l'objet groupe s'il est trouvé avec : id, nom, id_proprietaire; null sinon.
 	*/
 	function recupere_groupe_par_id($id) {
-		return null;
+
+		include("db_connect.php");
+
+		$stm = $PDO->prepare("SELECT * FROM `GROUPE` WHERE `idgroupe` = :idgroupe");
+		
+		$stm->bindValue(":idgroupe", $_POST[$id]);
+	
+		$stm->execute();
+
+		return $stm;
 	}
 	
 	/**
@@ -58,6 +67,21 @@
 		@return la liste des groupes avec : id, nom, membres (liste avec : id, login, valide).
 	*/
 	function recupere_groupe_par_ids($ids) {
+		include("db_connect.php");
+
+		foreach ($ids as $id) {
+
+			$stm = $PDO->prepare("SELECT g.idgroupe, g.nomgrp,m.idmembre,m.login 
+			FROM `GROUPE` g INNER JOIN REJOINDRE r ON g.idgroupe = r.idgroupe 
+			INNER JOIN MEMBRE m ON r.idmembre = m.idmembre");
+
+			$stm->execute();
+
+			$stm = $results->fetch_array();
+
+			
+		}
+
 		return array();
 	}
 	
