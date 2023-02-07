@@ -5,22 +5,6 @@
 	*/
 	function cree_table_groupe() {
 
-		include("db_connect.php");
-
-		$stm = $PDO->prepare("CREATE TABLE IF NOT EXISTS `gr1_8`.`GROUPE` (
-			`idgroupe` INT NOT NULL AUTO_INCREMENT,
-			`nomgrp` VARCHAR(42) NOT NULL,
-			`idmembre` INT NULL,
-			PRIMARY KEY (`idgroupe`),
-			INDEX `idmembre_idx` (`idmembre` ASC) VISIBLE,
-			CONSTRAINT `idmembreGrp`
-			  FOREIGN KEY (`idmembre`)
-			  REFERENCES `gr1_8`.`MEMBRE` (`idmembre`))
-		  ENGINE = InnoDB
-		  DEFAULT CHARACTER SET = utf8mb4;");
-	
-		$stm->execute();
-		
 	}
 
 	/**

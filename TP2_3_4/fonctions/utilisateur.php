@@ -3,6 +3,25 @@
 		Crée toutes les tables en relation avec l'utilisateur.
 	*/
 	function cree_table_utilisateur() {
+
+		include("db_connect.php");
+
+
+		$stm = $PDO->prepare("CREATE TABLE IF NOT EXISTS `gr1_8`.`MEMBRE` (
+			`idmembre` INT NOT NULL AUTO_INCREMENT,
+			`login` VARCHAR(42) NOT NULL,
+			`mdp` VARCHAR(42) NOT NULL,
+			`datenaissance` DATE NULL,
+			`niveau_sql` ENUM('débutant', 'intermediaire', 'expert') NOT NULL,
+			`compétence` VARCHAR(42) NOT NULL,
+			`nbpoints` INT NOT NULL,
+			`messagemembre` VARCHAR(45) NULL,
+			PRIMARY KEY (`idmembre`))
+		  ENGINE = InnoDB
+		  DEFAULT CHARACTER SET = utf8mb4;");
+
+		$stm->execute();
+		  
 	}
 
 	/**
@@ -17,7 +36,21 @@
 		@return si l'utilisateur a été ajouté ou non.
 	*/
 	function inscrit_utilisateur($login, $mot_de_passe, $confirmation, $date_naissance, $niveau, $competences, $message) {
-		return false;
+		
+		include("db_connect.php");
+
+		if($mot_de_passe == $confirmation){
+
+			$stm = $PDO->prepare("INSERT INTO `MEMBRE`(`login`, `mdp`, `datenaissance`, `niveau_sql`, `compétence`, `nbpoints`, `messagemembre`) 
+			VALUES ($login,$mot_de_passe,$date_naissance,$niveau,$competences,0,$message)");
+	
+			$stm->execute();
+			return true;
+		}else{
+
+			return false;
+
+		}
 	}
 
 	/**
@@ -35,7 +68,15 @@
 		@return la liste des niveaux avec : id, nom.
 	*/
 	function recupere_niveaux() {
-		return array();
+
+		include("db_connect.php");
+
+		$stm = $PDO->prepare("SELECT * FROM `niveaux`");
+
+		$stm->execute();
+		$stm = $results->fetch_array();
+
+
 	}
 
 	/**
