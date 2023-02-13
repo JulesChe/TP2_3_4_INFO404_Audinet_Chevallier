@@ -14,7 +14,7 @@
 		@return si le groupe a été ajouté ou non.
 	*/
 	function ajoute_groupe($nom, $id_proprietaire) {
-
+/* 
 		include("db_connect.php");
 
 		$stm = $PDO->prepare("INSERT INTO `GROUPE`(`nomgrp`, `idmembre`) VALUES (:nomgrp,:idmembre);");
@@ -24,7 +24,7 @@
 		$stm->execute();
 		
 
-		return $stm;
+		return $stm; */
 	}
 	
 	/**
@@ -34,7 +34,7 @@
 	*/
 	function recupere_groupe_par_id($id) {
 
-		include("db_connect.php");
+/* 		include("db_connect.php");
 
 		$stm = $PDO->prepare("SELECT * FROM `GROUPE` WHERE `idgroupe` = :idgroupe");
 		
@@ -42,7 +42,7 @@
 	
 		$stm->execute();
 
-		return $stm;
+		return $stm; */
 	}
 	
 	/**

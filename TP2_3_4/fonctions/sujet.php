@@ -4,7 +4,7 @@
 	*/
 	function cree_table_sujet() {
 
-        try {
+/*         try {
 
             include("db_connect.php");
 
@@ -32,7 +32,7 @@
         }
         catch (Exception $e){
             echo "une erreur s'est produite lors de l'ajout d'une table" . $e -> getMessage();
-        }
+        } */
 	}
 
 	/**
@@ -46,7 +46,7 @@
 	*/
 	function ajoute_sujet($titre, $id_auteur, $description, $image, $tags) {
 
-        try {
+/*         try {
             include("db_connect.php");
             $stm = $PDO -> prepare("INSERT INTO sujets (titre, id_auteur, description, image, tags) 
         VALUES (:titre, :id_auteur, :description, :image, :tags)");
@@ -62,7 +62,7 @@
         catch (Exception $e){
             echo "une erreur s'est produite lors de l'ajout d'un sujet" . $e -> getMessage();
         }
-        return false;
+        return false; */
     }
 
 
@@ -73,7 +73,7 @@
 	*/
 	function compte_sujet_par_auteur($id_auteur) {
 
-        try {
+/*         try {
             include("db_connect.php");
 
             $stm = $PDO -> prepare(" SELECT COUNT(*) FROM SUJET WHERE idmembre = idauteur");
@@ -84,7 +84,7 @@
         }
         catch (Exception $e){
             echo "une erreur s'est produite lors du comptage des sujet " . $e -> getMessage();
-        }
+        } */
 	}
 
 	/**

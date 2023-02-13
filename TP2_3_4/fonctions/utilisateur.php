@@ -18,7 +18,7 @@
 			`messagemembre` VARCHAR(45) NULL,
 			PRIMARY KEY (`idmembre`))
 		  ENGINE = InnoDB
-		  DEFAULT CHARACTER SET = utf8mb4;");
+		  DEFAULT CHARACTER SET = utf8mb4");
 
 		$stm->execute();
 		  
@@ -37,11 +37,11 @@
 	*/
 	function inscrit_utilisateur($login, $mot_de_passe, $confirmation, $date_naissance, $niveau, $competences, $message) {
 		
-		include("db_connect.php");
+ 		include("db_connect.php");
 
 		if($mot_de_passe == $confirmation){
 
-			$stm = $PDO->prepare("INSERT INTO `MEMBRE`(`login`, `mdp`, `datenaissance`, `niveau_sql`, `compétence`, `nbpoints`, `messagemembre`) 
+			$stm = $PDO->prepare("INSERT INTO `MEMBRE`(`login`, `mdp`, `datenaissance`, `niveau_sql`, `competence`, `nbpoints`, `messagemembre`) 
 			VALUES ($login,$mot_de_passe,$date_naissance,$niveau,$competences,0,$message)");
 	
 			$stm->execute();
@@ -50,7 +50,7 @@
 
 			return false;
 
-		}
+		} 
 	}
 
 	/**
@@ -71,11 +71,13 @@
 
 		include("db_connect.php");
 
-		$stm = $PDO->prepare("SELECT * FROM `niveaux`");
+		$stm = $PDO->prepare("SELECT `nom` FROM `niveaux`");
 
 		$stm->execute();
-		$stm = $results->fetch_array();
 
+		$data = $stm->fetchAll(PDO::FETCH_ASSOC);
+		
+		return $data;
 
 	}
 
@@ -84,7 +86,16 @@
 		@return la liste des compétences avec : id, nom.
 	*/
 	function recupere_competences() {
-		return array();
+
+		include("db_connect.php");
+
+		$stm = $PDO->prepare("SELECT `nom` FROM `competences`");
+
+		$stm->execute();
+
+		$data = $stm->fetchAll(PDO::FETCH_ASSOC);
+		
+		return $data;
 	}
 
 	/**
