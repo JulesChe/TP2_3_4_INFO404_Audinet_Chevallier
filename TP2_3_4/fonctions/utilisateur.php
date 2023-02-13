@@ -9,13 +9,13 @@
 
 		$stm = $PDO->prepare("CREATE TABLE IF NOT EXISTS `gr1_8`.`MEMBRE` (
 			`idmembre` INT NOT NULL AUTO_INCREMENT,
-			`login` VARCHAR(42) NOT NULL,
-			`mdp` VARCHAR(42) NOT NULL,
-			`datenaissance` DATE NULL,
-			`niveau_sql` ENUM('débutant', 'intermediaire', 'expert') NOT NULL,
-			`compétence` VARCHAR(42) NOT NULL,
-			`nbpoints` INT NOT NULL,
-			`messagemembre` VARCHAR(45) NULL,
+			`login` VARCHAR(42) ,
+			`mdp` VARCHAR(42) ,
+			`datenaissance` DATETIME ,
+			`niveau_sql` ENUM('débutant', 'intermediaire', 'expert') ,
+			`competence` VARCHAR(42) ,
+			`nbpoints` INT ,
+			`messagemembre` VARCHAR(45) ,
 			PRIMARY KEY (`idmembre`))
 		  ENGINE = InnoDB
 		  DEFAULT CHARACTER SET = utf8mb4");
@@ -35,25 +35,43 @@
 		@param message : le message de l'utilisateur qui le décrit.
 		@return si l'utilisateur a été ajouté ou non.
 	*/
-	function inscrit_utilisateur($login, $mot_de_passe, $confirmation, $date_naissance, $niveau, $competences, $message) {
-		
- 		include("db_connect.php");
+    function inscrit_utilisateur($login, $mot_de_passe, $confirmation, $date_naissance, $niveau, $competences, $message) {
+        if ($mot_de_passe != $confirmation) {
+            return false;
+        }
 
-		if($mot_de_passe == $confirmation){
+        try {
+            include("db_connect.php");
 
-			$stm = $PDO->prepare("INSERT INTO `MEMBRE`(`login`, `mdp`, `datenaissance`, `niveau_sql`, `competence`, `nbpoints`, `messagemembre`) 
-			VALUES ($login,$mot_de_passe,$date_naissance,$niveau,$competences,0,$message)");
-	
-			$stm->execute();
-			return true;
-		}else{
+            $stm = $PDO->prepare("INSERT INTO MEMBRE (login, mdp, datenaissance, niveau_sql, competence, messagemembre) 
+                                VALUES (:login, :mdp, :datenaissance, :niveau, :competence, :messagemembre)");
+            // Lier les valeurs aux placeholders
+            $stm->bindValue(':login', $login);
+            $stm->bindValue(':mdp', $mot_de_passe);
+            $stm->bindValue(':datenaissance', $date_naissance);
+            $stm->bindValue(':niveau', $niveau);
+            $stm->bindValue(':competence', implode(", ", $competences));
+            $stm->bindValue(':messagemembre', $message);
 
-			return false;
+            if ($stm->execute()) {
+                echo $stm;
+                return true;
 
-		} 
-	}
+            } else {
+                return "Une erreur s'est produite lors de l'enregistrement de l'utilisateur.";
+            }
+        } catch (PDOException $e) {
+            return "Une erreur s'est produite lors de la connexion à la base de données : " . $e->getMessage();
+        }
 
-	/**
+    }
+
+
+
+// INSERT INTO `MEMBRE` (login, mdp, datenaissance, niveau_sql, competence, nbpoints, messagemembre) VALUES ("baptiste", "blabla", 16/02/2003, null , null, 0, "yoyo")
+
+
+/**
 		Sélectionne l'utilisateur selon son login et son mot de passe.
 		@param login : le login de l'utilisateur.
 		@param mot_de_passe : le mot de passe de l'utilisateur.
