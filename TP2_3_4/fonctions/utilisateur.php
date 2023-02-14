@@ -2,29 +2,38 @@
 	/**
 		Crée toutes les tables en relation avec l'utilisateur.
 	*/
-	function cree_table_utilisateur() {
+    function cree_table_utilisateur() {
+        include("db_connect.php");
 
-		include("db_connect.php");
+        $query = "CREATE TABLE IF NOT EXISTS MEMBRE (
+                    idmembre INT NOT NULL AUTO_INCREMENT,
+                    login VARCHAR(42),
+                    mdp VARCHAR(42),
+                    datenaissance DATETIME,
+                    niveau_sql ENUM('débutant', 'intermediaire', 'expert'),
+                    competence VARCHAR(42),
+                    nbpoints INT,
+                    messagemembre VARCHAR(45),
+                    PRIMARY KEY (idmembre)
+                  ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4";
+
+        if (bdd()->query($query) ) {
+            echo "Table utilisateurs créée avec succès";
+            return true;
+        } else {
+            echo "Erreur : " . mysqli_error(bdd());
+        }
+
+        if ($mysqli->query($query) === TRUE) {
+            return true;
+        } else {
+            return "Erreur lors de la création de la table : " . $mysqli->error;
+        }
+
+    }
 
 
-		$stm = $PDO->prepare("CREATE TABLE IF NOT EXISTS `gr1_8`.`MEMBRE` (
-			`idmembre` INT NOT NULL AUTO_INCREMENT,
-			`login` VARCHAR(42) ,
-			`mdp` VARCHAR(42) ,
-			`datenaissance` DATETIME ,
-			`niveau_sql` ENUM('débutant', 'intermediaire', 'expert') ,
-			`competence` VARCHAR(42) ,
-			`nbpoints` INT ,
-			`messagemembre` VARCHAR(45) ,
-			PRIMARY KEY (`idmembre`))
-		  ENGINE = InnoDB
-		  DEFAULT CHARACTER SET = utf8mb4");
-
-		$stm->execute();
-		  
-	}
-
-	/**
+/**
 		Ajoute un utilisateur.
 		@param login : le login de l'utilisateur.
 		@param mot_de_passe : le mot de passe de l'utilisateur.
@@ -36,35 +45,23 @@
 		@return si l'utilisateur a été ajouté ou non.
 	*/
     function inscrit_utilisateur($login, $mot_de_passe, $confirmation, $date_naissance, $niveau, $competences, $message) {
-        if ($mot_de_passe != $confirmation) {
+        if($mot_de_passe !== $confirmation){
             return false;
         }
-
         try {
-            include("db_connect.php");
-
-            $stm = $PDO->prepare("INSERT INTO MEMBRE (login, mdp, datenaissance, niveau_sql, competence, messagemembre) 
-                                VALUES (:login, :mdp, :datenaissance, :niveau, :competence, :messagemembre)");
-            // Lier les valeurs aux placeholders
-            $stm->bindValue(':login', $login);
-            $stm->bindValue(':mdp', $mot_de_passe);
-            $stm->bindValue(':datenaissance', $date_naissance);
-            $stm->bindValue(':niveau', $niveau);
-            $stm->bindValue(':competence', implode(", ", $competences));
-            $stm->bindValue(':messagemembre', $message);
-
-            if ($stm->execute()) {
-                echo $stm;
-                return true;
-
-            } else {
-                return "Une erreur s'est produite lors de l'enregistrement de l'utilisateur.";
+            $sql_inscription = "INSERT INTO Membre (login,mdp,date_naissance,niveau,description) VALUES ('$login', '$mot_de_passe', '$date_naissance', '$niveau', '$message')";
+            bdd()->query($sql_inscription);
+            $recup_id  = bdd()->insert_id;
+            foreach($competences as $id_comp){
+                $sql_membre_competence = "INSERT INTO Competence_membre(id_membre,id_competence) VALUES ('$recup_id', '$id_comp')";
+                bdd()->query($sql_membre_competence);
             }
-        } catch (PDOException $e) {
-            return "Une erreur s'est produite lors de la connexion à la base de données : " . $e->getMessage();
-        }
+            return true;
 
+          } catch (Exception $e) {
+    return "Une erreur s'est produite lors de l'inscription de l'utilisateur : " . $e->getMessage();
     }
+}
 
 
 
@@ -87,15 +84,7 @@
 	*/
 	function recupere_niveaux() {
 
-		include("db_connect.php");
 
-		$stm = $PDO->prepare("SELECT `nom` FROM `niveaux`");
-
-		$stm->execute();
-
-		$data = $stm->fetchAll(PDO::FETCH_ASSOC);
-		
-		return $data;
 
 	}
 
@@ -105,15 +94,6 @@
 	*/
 	function recupere_competences() {
 
-		include("db_connect.php");
-
-		$stm = $PDO->prepare("SELECT `nom` FROM `competences`");
-
-		$stm->execute();
-
-		$data = $stm->fetchAll(PDO::FETCH_ASSOC);
-		
-		return $data;
 	}
 
 	/**

@@ -1,21 +1,19 @@
 <?php
 
-require 'db_config.php';
-try{
+include ('db_config.php');
 
-    $options = [
+// Connexion à la base de données
+$mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
-        PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    ];
-
-    $PDO = new PDO($db_dsn,$db_user,$db_pass,$options);
-
+// Vérification de la connexion
+if ($mysqli->connect_errno) {
+    echo "Failed to connect to MySQL: " . $mysqli->connect_error;
+    exit();
 }
 
-catch(PDOException $pe){
-
-    echo 'ERREUR : '. $pe ->getMessage();
+// Configuration de l'encodage en utf8
+if (!$mysqli->set_charset("utf8")) {
+    printf("Error loading character set utf8: %s\n", $mysqli->error);
 }
 
 ?>
