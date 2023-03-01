@@ -3,6 +3,14 @@
 		Crée toutes les tables en relation avec le tag.
 	*/
 	function cree_table_tag() {
+
+		$sql_create ="CREATE TABLE IF NOT EXISTS TAG (
+			id	INT NOT NULL AUTO_INCREMENT,
+			nom	VARCHAR(50),
+			CONSTRAINT pk_TAG PRIMARY KEY (id)
+		)";
+
+		bdd()->query($sql_create);
 	}
 
 	/**
@@ -12,6 +20,9 @@
 		@return si les tags ont été ajoutés ou non.
 	*/
 	function ajoute_tag($id_sujet, $tags) {
+
+		
+
 		return false;
 	}
 

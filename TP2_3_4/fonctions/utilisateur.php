@@ -3,78 +3,39 @@
 		Crée toutes les tables en relation avec l'utilisateur.
 	*/
     function cree_table_utilisateur() {
-        include("db_connect.php");
+        bdd()->query("CREATE TABLE IF NOT EXISTS  `MEMBRE` (
+			`id` INT NOT NULL AUTO_INCREMENT,
+			`login` VARCHAR(42),
+			`mot_de_passe` VARCHAR(42),
+			`date_naissance` DATE,
+			`description` VARCHAR(42),
+			`point` INT DEFAULT(0),
+			`niveau` INT,
+			PRIMARY KEY (`id`),
+			FOREIGN KEY (`niveau`) REFERENCES NIVEAU(`id`)
+		)");		
 
-        // Création de la Table MEMBRE
-        $query = "CREATE TABLE IF NOT EXISTS MEMBRE (
-                    idmembre INT NOT NULL AUTO_INCREMENT,
-                    login VARCHAR(42),
-                    mdp VARCHAR(42),
-                    datenaissance DATETIME,
-                    niveau_sql ENUM('débutant', 'intermediaire', 'expert'),
-                    competence VARCHAR(42),
-                    nbpoints INT,
-                    messagemembre VARCHAR(45),
-                    PRIMARY KEY (idmembre)
-                  ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4";
+		bdd()->query("CREATE TABLE IF NOT EXISTS `COMPETENCE` (
+			`id` INT NOT NULL AUTO_INCREMENT,
+			`nom` VARCHAR(42),
+			PRIMARY KEY (`id`)
+			)");
 
-        if (bdd()->query($query) ) {
-            //echo "Table utilisateurs créée avec succès";
-        } else {
-            echo "Erreur : " . mysqli_error(bdd());
-        }
+		bdd()->query(
+			"CREATE TABLE IF NOT EXISTS  `NIVEAU` (
+			`id` INT NOT NULL AUTO_INCREMENT,
+			`nom` VARCHAR(42),
+			PRIMARY KEY (`id`)
+			)");
 
-
-
-        // Création de la Table niveau, et insertion des niveaux
-        $sql_niveau_table = "CREATE TABLE IF NOT EXISTS niveau (
-                            id INT NOT NULL AUTO_INCREMENT,
-                            nom VARCHAR (42),
-                            PRIMARY KEY (id)
-                            )";
-
-
-        $sql_niveau_insert_d = "INSERT INTO niveau (nom) SELECT 'débutant' WHERE NOT EXISTS (SELECT * FROM niveau WHERE nom = 'débutant')";
-        bdd()->query($sql_niveau_insert_d);
-
-        $sql_niveau_insert_i = "INSERT INTO niveau (nom) SELECT 'intermédiaire' WHERE NOT EXISTS (SELECT * FROM niveau WHERE nom = 'intermédiaire')";
-        bdd()->query($sql_niveau_insert_i);
-
-        $sql_niveau_insert_e = "INSERT INTO niveau (nom) SELECT 'expert' WHERE NOT EXISTS (SELECT * FROM niveau WHERE nom = 'expert')";
-        bdd()->query($sql_niveau_insert_e);
-
-        $sql_niveau_insert_m = "INSERT INTO niveau (nom) SELECT 'mercenaire' WHERE NOT EXISTS (SELECT * FROM niveau WHERE nom = 'mercenaire')";
-        bdd()->query($sql_niveau_insert_m);
-
-        if (bdd()->query($sql_niveau_table) ) {
-            //echo "Table niveaux créée avec succès";
-        } else {
-            echo "Erreur : " . mysqli_error(bdd());
-        }
-
-
-
-        // Création de la Table competence et insertion des competences
-        $sql_competence_table = "CREATE TABLE IF NOT EXISTS competences (
-                            id INT NOT NULL AUTO_INCREMENT,
-                            nom VARCHAR (42),
-                            PRIMARY KEY (id)
-                            )";
-
-        $sql_competence_insert_W = "INSERT INTO competences (nom) SELECT 'Web' WHERE NOT EXISTS (SELECT * FROM competences WHERE nom = 'Web')";
-        bdd()->query($sql_competence_insert_W);
-
-        $sql_competence_insert_M = "INSERT INTO competences (nom) SELECT 'Mobile' WHERE NOT EXISTS (SELECT * FROM competences WHERE nom = 'Mobile')";
-        bdd()->query($sql_competence_insert_M);
-
-        $sql_competence_insert_S = "INSERT INTO competences (nom) SELECT 'Serveurs' WHERE NOT EXISTS (SELECT * FROM competences WHERE nom = 'Serveurs')";
-        bdd()->query($sql_competence_insert_S);
-
-        if (bdd()->query($sql_competence_table) ) {
-            //echo "Table competence créée avec succès";
-        } else {
-            echo "Erreur : " . mysqli_error(bdd());
-        }
+		bdd()->query(
+			"CREATE TABLE IF NOT EXISTS `COMPETENCES_MEMBRE` (
+			`idCompetence` INT,
+			`idUtilisateur` INT,
+			PRIMARY KEY (`idCompetence`, `idUtilisateur`),
+			FOREIGN KEY (`idCompetence`) REFERENCES COMPETENCE(`id`),
+			FOREIGN KEY (`idUtilisateur`) REFERENCES MEMBRE(`id`)
+			)");
 
     }
 
@@ -91,22 +52,35 @@
 		@return si l'utilisateur a été ajouté ou non.
 	*/
     function inscrit_utilisateur($login, $mot_de_passe, $confirmation, $date_naissance, $niveau, $competences, $message) {
-        if($mot_de_passe !== $confirmation){
-            return false;
-        }
-        try {
-            $sql_inscription = "INSERT INTO MEMBRE (login,mdp,date_naissance,niveau,description) VALUES ('$login', '$mot_de_passe', '$date_naissance', '$niveau', '$message')";
-            bdd()->query($sql_inscription);
-            $recup_id  = bdd()->insert_id;
-            foreach($competences as $id_comp){
-                $sql_membre_competence = "INSERT INTO competences(id_membre,id_competence) VALUES ('$recup_id', '$id_comp')";
-                bdd()->query($sql_membre_competence);
-            }
-            return true;
+        // Vérification du mot de passe
+		if ($mot_de_passe != $confirmation) {
+			return false;
+		}
+		
+		// Insertion de l'utilisateur
+		$sql = "INSERT INTO MEMBRE (login, mot_de_passe, date_naissance, niveau, description)
+		VALUES ('$login', '$mot_de_passe', '$date_naissance', '$niveau', '$message')";
+		$result = bdd()->query($sql);
 
-          } catch (Exception $e) {
-    return "Une erreur s'est produite lors de l'inscription de l'utilisateur : " . $e->getMessage();
-    }
+		if (!$result) {
+			return false;
+		}
+
+		// Récupération de l'ID de l'utilisateur inséré
+		$id_utilisateur = bdd()->insert_id;
+
+		// Insertion des compétences pour cet utilisateur
+		foreach ($competences as $competence) {
+			$sql = "INSERT INTO COMPETENCES_MEMBRE (idUtilisateur, idCompetence)
+					VALUES ('$id_utilisateur', '$competence')";
+			$result = bdd()->query($sql);
+			if (!$result) {
+				return false;
+			}
+		}
+
+
+		return true;
 }
 
 
@@ -121,7 +95,15 @@
 		@return l'objet utilisateur s'il est trouvé avec : id, login, point (son nombre de points); null sinon.
 	*/
 	function connecte_utilisateur($login, $mot_de_passe) {
-		return null;
+        $sql = "SELECT * FROM MEMBRE WHERE login='$login' AND mot_de_passe='$mot_de_passe'";
+		$result = bdd()->query($sql);
+	
+		if ($result && $result->num_rows > 0) {
+			$row = $result->fetch_assoc();
+			return $row;
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -129,13 +111,9 @@
 		@return la liste des niveaux avec : id, nom.
 	*/
     function recupere_niveaux() {
-        $sql_select_niveau = "SELECT id, nom FROM niveau";
-        $result = bdd()->query($sql_select_niveau);
-        $niveau = array();
-        while($row = $result->fetch_assoc()) {
-            $niveau[] = $row;
-        }
-        return $niveau;
+		$sql = "SELECT * FROM NIVEAU";
+		$result = bdd()->query($sql);
+		return $result;
     }
 
 	/**
@@ -143,13 +121,13 @@
 		@return la liste des compétences avec : id, nom.
 	*/
 	function recupere_competences() {
-        $sql_select_competence = "SELECT id, nom FROM competences";
-        $result = bdd()->query($sql_select_competence);
-        $competences = array();
-        while($row = $result->fetch_assoc()) {
-            $competences[] = $row;
-        }
-        return $competences;
+		$sql_select_competence = "SELECT id, nom FROM COMPETENCE";
+		$result = bdd()->query($sql_select_competence);
+		$competences = array();
+		while($row = $result->fetch_assoc()) {
+			$competences[] = $row;
+		}
+		return $competences;
 	}
 
 	/**
@@ -158,7 +136,25 @@
 		@return l'objet utilisateur s'il est trouvé avec : id, login, date_naissance, niveau, competences (liste des ids des compétences), message, point (son nombre de points); null sinon.
 	*/
 	function recupere_utilisateur($id) {
-		return null;
+		$select = bdd()->query("SELECT * FROM MEMBRE WHERE id='$id'");
+		$user = array();
+		$id_competence_array = array();
+		if($result = $select->fetch_assoc()){
+			$user['id'] = $result['id'];
+			$user['login'] = $result['login'];
+			$user['date_naissance'] = $result['date_naissance'];
+			$user['niveau'] = $result['niveau'];
+			$user['message'] = $result['description'];
+			$user['point'] = $result['point'];
+			$sql_select_competence = "SELECT idCompetence FROM COMPETENCES_MEMBRE WHERE idUtilisateur='$id'";
+			$competences = bdd()->query($sql_select_competence);
+			while($row = $competences->fetch_assoc()) {
+				$user['competences'][] = $row['idCompetence'];
+			}
+			return $user;
+		}else{
+			return false;
+		}
 	}
 
 	/**
@@ -170,7 +166,22 @@
 		@return si le niveau, les compétences et le message de l'utilisateur ont été modifiés ou non.
 	*/
 	function modifie_information_utilisateur($id, $niveau, $competences, $message) {
-		return false;
+		$update = "UPDATE UTILISATEUR SET niveau = '$niveau', description = '$message' WHERE id='$id'";
+		if(bdd()->query($update)){
+			$sql_del_comp = "DELETE FROM `COMPETENCES_MEMBRE` WHERE idUtilisateur = '$id'";
+			if(bdd()->query($sql_del_comp)){
+				foreach($competences as $id_comp){
+					$sql_utilisateur_competence = "INSERT INTO `COMPETENCES_MEMBRE`(`idUtilisateur`,`idCompetence`) VALUES ('$id', '$id_comp')";	
+					bdd()->query($sql_utilisateur_competence);
+				}
+				return true;
+			}else{
+				return false;
+			}
+			
+		}else{
+			return false;
+		}
 	}
 
 	/**
@@ -182,7 +193,23 @@
 		@return si le mot de passe de l'utilisateur a été modifié ou non.
 	*/
 	function modifie_mot_de_passe_utilisateur($id, $ancien_mot_de_passe, $mot_de_passe, $confirmation) {
-		return false;
+		$sql_ancien_mdp = "SELECT mot_de_passe FROM MEMBRE WHERE id = '$id'";
+		$res_ancien_mdp = bdd()->query($sql_ancien_mdp);
+		$res_ancien_mdp_fetch = $res_ancien_mdp->fetch_assoc();
+		if($res_ancien_mdp_fetch['mot_de_passe'] == $ancien_mot_de_passe){
+			if($mot_de_passe == $confirmation){
+				$sql_update_mdp = "UPDATE MEMBRE SET mot_de_passe = '$mot_de_passe' WHERE id = '$id'";
+				if(bdd()->query($sql_update_mdp)){
+					return true;
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
 	}
 	
 	/**

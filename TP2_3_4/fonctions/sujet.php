@@ -4,35 +4,17 @@
 	*/
 	function cree_table_sujet() {
 
-/*         try {
+		$sql_create = "CREATE TABLE IF NOT EXISTS SUJET(
+			id	INT NOT NULL AUTO_INCREMENT,
+			titre	VARCHAR(50) NOT NULL,
+			description	VARCHAR(60),
+			image	VARCHAR(50),
+			idAuteur	INT,
+			CONSTRAINT pk_SUJET PRIMARY KEY (id),
+			CONSTRAINT fk_SUJET_MEMBRE FOREIGN KEY (idAuteur) REFERENCES MEMBRE (id)
+		)";
 
-            include("db_connect.php");
-
-            $stm = $PDO->prepare("
-            CREATE TABLE IF NOT EXISTS gr1_8.SUJET (
-            titre VARCHAR(42) NULL DEFAULT NULL,
-            description VARCHAR(42) NULL DEFAULT NULL,
-            image VARCHAR(42) NULL DEFAULT NULL,
-            idmessage INT NULL DEFAULT NULL,
-            idmembre INT NULL DEFAULT NULL,
-            PRIMARY KEY (titre),
-            INDEX idmembreSuj (idmembre ASC) VISIBLE,
-            INDEX idmessageSuj (idmessage ASC) VISIBLE,
-            CONSTRAINT idmembreSuj
-            FOREIGN KEY (idmembre)
-            REFERENCES gr1_8.MEMBRE (idmembre),
-            CONSTRAINT idmessageSuj
-            FOREIGN KEY (idmessage)
-            REFERENCES gr1_8.MESSAGE (idmessage))
-            ENGINE = InnoDB
-            DEFAULT CHARACTER SET = utf8mb4;");
-
-            $stm->execute();
-
-        }
-        catch (Exception $e){
-            echo "une erreur s'est produite lors de l'ajout d'une table" . $e -> getMessage();
-        } */
+		bdd()->query($sql_create);
 	}
 
 	/**
@@ -46,23 +28,10 @@
 	*/
 	function ajoute_sujet($titre, $id_auteur, $description, $image, $tags) {
 
-/*         try {
-            include("db_connect.php");
-            $stm = $PDO -> prepare("INSERT INTO sujets (titre, id_auteur, description, image, tags) 
-        VALUES (:titre, :id_auteur, :description, :image, :tags)");
-            $stm->bindValue(':titre', $titre);
-            $stm->bindValue(':id_auteur', $id_auteur);
-            $stm->bindValue(':description', $description);
-            $stm->bindValue(':image', $image);
-            $stm->bindValue(':tags', null);
-            $stm->execute();
+		$sql_insert = "INSERT INTO `SUJET`(`titre`, `description`, `image`, `idAuteur`) VALUES ('$titre','$description','$image','$id_auteur')";
+		bdd()->query($sql_insert);
+		return true;
 
-            return true;
-        }
-        catch (Exception $e){
-            echo "une erreur s'est produite lors de l'ajout d'un sujet" . $e -> getMessage();
-        }
-        return false; */
     }
 
 
