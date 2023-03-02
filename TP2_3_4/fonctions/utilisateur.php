@@ -174,13 +174,13 @@
 					$sql_utilisateur_competence = "INSERT INTO `COMPETENCES_MEMBRE`(`idUtilisateur`,`idCompetence`) VALUES ('$id', '$id_comp')";	
 					bdd()->query($sql_utilisateur_competence);
 				}
-				return true;
+				$res = true;
 			}else{
-				return false;
+				$res = false;
 			}
 			
 		}else{
-			return false;
+			$res = false;
 		}
 	}
 
@@ -200,16 +200,18 @@
 			if($mot_de_passe == $confirmation){
 				$sql_update_mdp = "UPDATE MEMBRE SET mot_de_passe = '$mot_de_passe' WHERE id = '$id'";
 				if(bdd()->query($sql_update_mdp)){
-					return true;
+					$res = true;
 				}else{
-					return false;
+					$res = false;
 				}
 			}else{
-				return false;
+				$res = false;
 			}
 		}else{
-			return false;
+			$res = false;
 		}
+
+		return $res;
 	}
 	
 	/**

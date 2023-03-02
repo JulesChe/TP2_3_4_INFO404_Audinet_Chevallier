@@ -9,6 +9,7 @@
 			titre	VARCHAR(50) NOT NULL,
 			description	VARCHAR(60),
 			image	VARCHAR(50),
+			date_creation DATE,
 			idAuteur	INT,
 			CONSTRAINT pk_SUJET PRIMARY KEY (id),
 			CONSTRAINT fk_SUJET_MEMBRE FOREIGN KEY (idAuteur) REFERENCES MEMBRE (id)
@@ -28,23 +29,12 @@
 	*/
 	function ajoute_sujet($titre, $id_auteur, $description, $image, $tags) {
 
-/*         try {
-            include("db_connect.php");
-            $stm = $PDO -> prepare("INSERT INTO sujets (titre, id_auteur, description, image, tags) 
-        VALUES (:titre, :id_auteur, :description, :image, :tags)");
-            $stm->bindValue(':titre', $titre);
-            $stm->bindValue(':id_auteur', $id_auteur);
-            $stm->bindValue(':description', $description);
-            $stm->bindValue(':image', $image);
-            $stm->bindValue(':tags', null);
-            $stm->execute();
+		$sql_insert = "INSERT INTO `SUJET`(`titre`, `description`, `image`, `idAuteur`) VALUES ($titre,$description,$image,$id_auteur)";
+		bdd()->query($sql_insert);
+		$last_id = bdd()->insert_id;
+		ajoute_tag($last_id,$tags);
 
-            return true;
-        }
-        catch (Exception $e){
-            echo "une erreur s'est produite lors de l'ajout d'un sujet" . $e -> getMessage();
-        }
-        return false; */
+		return true;
     }
 
 
@@ -55,18 +45,10 @@
 	*/
 	function compte_sujet_par_auteur($id_auteur) {
 
-/*         try {
-            include("db_connect.php");
+		$sql = "SELECT COUNT(*) FROM SUJET WHERE idAuteur = '$id_auteur'";
+		$res = bdd()->query($sql);
 
-            $stm = $PDO -> prepare(" SELECT COUNT(*) FROM SUJET WHERE idmembre = idauteur");
-            $stm -> execute();
-
-
-            return true;
-        }
-        catch (Exception $e){
-            echo "une erreur s'est produite lors du comptage des sujet " . $e -> getMessage();
-        } */
+		return $res;
 	}
 
 	/**

@@ -29,10 +29,15 @@
 	*/
 	function ajoute_tag($id_sujet, $tags) {
 
+
+
 		if(!empty($tags)){
 			foreach($tags as $value){
 				$sql_join = "INSERT INTO `TAG`( `nom`) VALUES ($value)";
-				$sql_tagsujet = "INSERT INTO `TAGSUJET`(`idSujet`, `nomTag`) VALUES ($id_sujet,$value)"
+				$sql_tagsujet = "INSERT INTO `TAGSUJET`(`idSujet`, `nomTag`) VALUES ($id_sujet,$value)";
+				bdd()->query($sql_join);
+				bdd()->query($sql_tagsujet);
+
 			}
 			return true;
 		}
