@@ -28,10 +28,23 @@
 	*/
 	function ajoute_sujet($titre, $id_auteur, $description, $image, $tags) {
 
-		$sql_insert = "INSERT INTO `SUJET`(`titre`, `description`, `image`, `idAuteur`) VALUES ('$titre','$description','$image','$id_auteur')";
-		bdd()->query($sql_insert);
-		return true;
+/*         try {
+            include("db_connect.php");
+            $stm = $PDO -> prepare("INSERT INTO sujets (titre, id_auteur, description, image, tags) 
+        VALUES (:titre, :id_auteur, :description, :image, :tags)");
+            $stm->bindValue(':titre', $titre);
+            $stm->bindValue(':id_auteur', $id_auteur);
+            $stm->bindValue(':description', $description);
+            $stm->bindValue(':image', $image);
+            $stm->bindValue(':tags', null);
+            $stm->execute();
 
+            return true;
+        }
+        catch (Exception $e){
+            echo "une erreur s'est produite lors de l'ajout d'un sujet" . $e -> getMessage();
+        }
+        return false; */
     }
 
 

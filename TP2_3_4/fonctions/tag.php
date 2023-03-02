@@ -4,13 +4,21 @@
 	*/
 	function cree_table_tag() {
 
-		$sql_create ="CREATE TABLE IF NOT EXISTS TAG (
-			id	INT NOT NULL AUTO_INCREMENT,
+		$sql_tag ="CREATE TABLE IF NOT EXISTS TAG (
 			nom	VARCHAR(50),
-			CONSTRAINT pk_TAG PRIMARY KEY (id)
+			CONSTRAINT pk_TAG PRIMARY KEY (nom)
 		)";
 
-		bdd()->query($sql_create);
+		$sql_tag_sujet ="CREATE TABLE IF NOT EXISTS TAGSUJET ( 
+			idSujet INT, 
+			nomTag VARCHAR(50), 
+			CONSTRAINT fk_SUJET FOREIGN KEY (idSujet) REFERENCES SUJET (id), 
+			CONSTRAINT fk_TAG FOREIGN KEY (nomTag) REFERENCES TAG (nom)
+		)";
+
+
+		bdd()->query($sql_tag);
+		bdd()->query($sql_tag_sujet);
 	}
 
 	/**
@@ -21,7 +29,13 @@
 	*/
 	function ajoute_tag($id_sujet, $tags) {
 
-		
+		if(!empty($tags)){
+			foreach($tags as $value){
+				$sql_join = "INSERT INTO `TAG`( `nom`) VALUES ($value)";
+				$sql_tagsujet = "INSERT INTO `TAGSUJET`(`idSujet`, `nomTag`) VALUES ($id_sujet,$value)"
+			}
+			return true;
+		}
 
 		return false;
 	}
@@ -31,7 +45,8 @@
 		@return la liste des tags.
 	*/
 	function recupere_tag() {
-		return array();
+		$sql = "SELECT * FROM TAG";
+        return bdd()->query($sql);
 	}
 
 	/**
@@ -39,6 +54,12 @@
 		@return la liste des tags selon un sujet.
 	*/
 	function recupere_tag_par_sujet($id_sujet) {
-		return array();
+		$select = bdd()->query("SELECT * FROM MEMBRE WHERE id_sujet='$id_sujet'");
+        $sujet = array();
+
+        if($result = $select->fetch_assoc()){
+            $sujet['id_sujet'] = $result['id_sujet'];
+        }
+        return $result();
 	}
 
