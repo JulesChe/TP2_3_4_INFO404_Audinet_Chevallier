@@ -6,9 +6,9 @@
 
 		$sql_create = "CREATE TABLE IF NOT EXISTS SUJET(
 			id	INT NOT NULL AUTO_INCREMENT,
-			titre	VARCHAR(50) NOT NULL,
-			description	VARCHAR(60),
-			image	VARCHAR(50),
+			titre	VARCHAR(100) NOT NULL,
+			description	VARCHAR(100),
+			image	VARCHAR(300),
 			date_creation DATE,
 			idAuteur	INT,
 			CONSTRAINT pk_SUJET PRIMARY KEY (id),
@@ -43,12 +43,14 @@
 	*/
 	function ajoute_sujet($titre, $id_auteur, $description, $image, $tags) {
 
+		$description=escapeshellcmd($description);
+		$titre=escapeshellcmd($titre);
+
 		$sql_insert = "INSERT INTO `SUJET`(`titre`, `description`, `image`,`date_creation`, `idAuteur`) VALUES ('$titre','$description','$image',now(),$id_auteur)";
 		$res = bdd()->query($sql_insert);
 		$last_id = bdd()->insert_id;
 		ajoute_tag($last_id,$tags);
-
-		var_dump($last_id);
+		modifie_point_utilisateur($id_auteur,30);
 
 		return $res;
     }
@@ -63,6 +65,7 @@
 
 		$sql = "SELECT COUNT(*) FROM SUJET WHERE idAuteur = '$id_auteur'";
 		$res = bdd()->query($sql);
+		$res = $res->fetch_row()[0];
 
 		return $res;
 	}
@@ -88,7 +91,7 @@
 
 		foreach($res as $value){
 
-			$objSuj[] = array(
+			$objSuj = array(
 				"id" => $value["id"],
 				"titre" => $value["titre"],
 				"login" => $value["login"],

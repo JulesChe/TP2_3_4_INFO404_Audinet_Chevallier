@@ -53,8 +53,9 @@
 	*/
     function inscrit_utilisateur($login, $mot_de_passe, $confirmation, $date_naissance, $niveau, $competences, $message) {
         // Vérification du mot de passe
+		$res =true;
 		if ($mot_de_passe != $confirmation) {
-			return false;
+			$res = false;
 		}
 		
 		// Insertion de l'utilisateur
@@ -63,7 +64,7 @@
 		$result = bdd()->query($sql);
 
 		if (!$result) {
-			return false;
+			$res = false;
 		}
 
 		// Récupération de l'ID de l'utilisateur inséré
@@ -75,12 +76,12 @@
 					VALUES ('$id_utilisateur', '$competence')";
 			$result = bdd()->query($sql);
 			if (!$result) {
-				return false;
+				$res = false;
 			}
 		}
 
 
-		return true;
+		return $res;
 }
 
 
@@ -100,10 +101,12 @@
 	
 		if ($result && $result->num_rows > 0) {
 			$row = $result->fetch_assoc();
-			return $row;
+			$res = $row;
 		} else {
-			return null;
+			$res = null;
 		}
+
+		return $res;
 	}
 
 	/**
@@ -151,10 +154,11 @@
 			while($row = $competences->fetch_assoc()) {
 				$user['competences'][] = $row['idCompetence'];
 			}
-			return $user;
+			$res = $user;
 		}else{
-			return false;
+			$res =null;
 		}
+		return $res;
 	}
 
 	/**
@@ -221,5 +225,10 @@
 		@return si le nombre de points de l'utilisateur a été modifié ou non.
 	*/
 	function modifie_point_utilisateur($id, $point) {
-		return false;
+
+		$sql_update_point = "UPDATE `MEMBRE` SET `point`= `point` + $point WHERE id = $id";
+
+		$res = bdd()->query($sql_update_point);
+
+		return $res;
 	}
