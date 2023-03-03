@@ -151,28 +151,44 @@
 
 		if($id_auteur <= 0){
 
-			$sql_select_limite ="SELECT s.id, s.titre, m.login, s.date_creation, s.description, s.image,
+			$sql_select_limite ="SELECT DISTINCT s.id, s.titre, m.login, s.date_creation, s.description, s.image, 
 			EXISTS(SELECT * FROM MEMBRESUJET ms WHERE ms.idMembre = $id_utilisateur AND s.id = ms.idSujet) AS favori 
-			FROM SUJET s
-			LIMIT $limite OFFSET $decalage
-			JOIN TAGSUJET ts ON s.id = ts.idSujet 
-			JOIN MEMBRE m ON s.idAuteur = m.id 
-			WHERE s.date_creation = "
+			FROM SUJET s 
+			LEFT JOIN MEMBRESUJET ms ON s.id = ms.idSujet 
+			LEFT JOIN MEMBRE m ON ms.idMembre = m.id 
+			ORDER BY s.date_creation ASC 
+			LIMIT $limite OFFSET $decalage 
+			 ";
 
 		} else {
 
-		$sql_select_limite ="SELECT s.id, s.titre, m.login, s.date_creation, s.description, s.image,
-		EXISTS(SELECT * FROM MEMBRESUJET ms WHERE ms.idMembre = $id_utilisateur AND s.id = ms.idSujet) AS favori 
-		FROM SUJET s
-		LIMIT $limite OFFSET $decalage
-		JOIN TAGSUJET ts ON s.id = ts.idSujet 
-		JOIN MEMBRE m ON s.idAuteur = m.id 
-		WHERE s.date_creation = "
+			$sql_select_limite ="SELECT DISTINCT s.id, s.titre, m.login, s.date_creation, s.description, s.image, 
+			EXISTS(SELECT * FROM MEMBRESUJET ms WHERE ms.idMembre = $id_utilisateur AND s.id = ms.idSujet) AS favori 
+			FROM SUJET s 
+			LEFT JOIN MEMBRESUJET ms ON s.id = ms.idSujet 
+			LEFT JOIN MEMBRE m ON ms.idMembre = m.id 
+			WHERE s.idAuteur = $id_auteur
+			ORDER BY s.date_creation ASC 
+			LIMIT $limite OFFSET $decalage";
 		}
 
+		$res = bdd()->query($sql_select_limite);
+		$objSuj = array();
 
+		foreach($res as $value){
 
-		return array();
+			$objSuj[] = array(
+				"id" => $value["id"],
+				"titre" => $value["titre"],
+				"login" => $value["login"],
+				"date_creation" => $value["date_creation"],
+				"description" => $value["description"],
+				"image" => $value["image"],
+				"favori" => $value["favori"]
+			);
+		}
+
+		return $objSuj;
 	}
 
 	/**
@@ -181,7 +197,32 @@
 		@return la liste des sujets avec : id, titre, login (le login de l'auteur), date_creation, description, image, favori (s'il est favori de l'utilisateur connecté).
 	*/
 	function recupere_sujet_par_message($id_auteur) {
-		return array();
+
+		$sql_select_mess = "SELECT DISTINCT s.id, s.titre, m.login, s.date_creation, s.description, s.image, 
+		EXISTS(SELECT * FROM MEMBRESUJET ms WHERE ms.idMembre = $id_auteur AND s.id = ms.idSujet) AS favori 
+		FROM SUJET s 
+		JOIN MEMBRE m ON m.id = s.idAuteur 
+		LEFT JOIN MESSAGES mes ON s.id = mes.id_sujet 
+		WHERE mes.id_auteur = $id_auteur";
+
+
+		$res = bdd()->query($sql_select_mess);
+		$objSuj = array();
+
+		foreach($res as $value){
+
+			$objSuj[] = array(
+				"id" => $value["id"],
+				"titre" => $value["titre"],
+				"login" => $value["login"],
+				"date_creation" => $value["date_creation"],
+				"description" => $value["description"],
+				"image" => $value["image"],
+				"favori" => $value["favori"]
+			);
+		}
+
+		return $objSuj;
 	}
 
 	/**
@@ -191,7 +232,27 @@
 		@return si le favori a été ajouté/supprimé ou non.
 	*/
 	function ajoute_ou_supprime_favori($id_utilisateur, $id_sujet) {
-		return false;
+
+		$results = false;
+		$select_fav = " SELECT * FROM MEMBRESUJET ms WHERE ms.idMembre = $id_utilisateur AND ms.idSujet = $id_sujet";
+
+		$res = bdd()->query($select_fav);
+
+		if($res->num_rows == 0){
+
+			$insert_fav = "INSERT INTO MEMBRESUJET (idMembre,idSujet) VALUES ($id_utilisateur,$id_sujet)";
+			bdd()->query($insert_fav);
+			$results = true;
+			
+		} else if($res->num_rows == 1) {
+
+			$delete_fav = "DELETE FROM `MEMBRESUJET` WHERE idMembre = $id_utilisateur AND idSujet = $id_sujet";
+			bdd()->query($delete_fav);
+			$results =true;
+		}
+
+
+		return $results;
 	}
 
 	/**
@@ -200,5 +261,30 @@
 		@return la liste des sujets avec : id, titre, login (le login de l'auteur), date_creation, description, image, favori (s'il est favori de l'utilisateur connecté).
 	*/
 	function recupere_favori($id_utilisateur) {
-		return array();
+
+
+		$sql_select_fav = "SELECT DISTINCT s.id, s.titre, m.login, s.date_creation, s.description, s.image, 
+		EXISTS(SELECT * FROM MEMBRESUJET ms WHERE ms.idMembre = $id_utilisateur AND s.id = ms.idSujet) AS favori 
+		FROM SUJET s 
+		JOIN MEMBRESUJET ms ON ms.idSujet = s.id 
+		JOIN MEMBRE m ON m.id = ms.idMembre 
+		WHERE ms.idMembre = $id_utilisateur";
+
+		$res = bdd()->query($sql_select_fav);
+		$objSuj = array();
+
+		foreach($res as $value){
+
+			$objSuj[] = array(
+				"id" => $value["id"],
+				"titre" => $value["titre"],
+				"login" => $value["login"],
+				"date_creation" => $value["date_creation"],
+				"description" => $value["description"],
+				"image" => $value["image"],
+				"favori" => $value["favori"]
+			);
+		}
+
+		return $objSuj;
 	}
