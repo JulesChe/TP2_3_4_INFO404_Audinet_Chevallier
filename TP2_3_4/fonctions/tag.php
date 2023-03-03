@@ -30,19 +30,25 @@
 	function ajoute_tag($id_sujet, $tags) {
 
 
+		$res=false;
 
 		if(!empty($tags)){
+
 			foreach($tags as $value){
-				$sql_join = "INSERT INTO `TAG`( `nom`) VALUES ($value)";
-				$sql_tagsujet = "INSERT INTO `TAGSUJET`(`idSujet`, `nomTag`) VALUES ($id_sujet,$value)";
-				bdd()->query($sql_join);
-				bdd()->query($sql_tagsujet);
 
+				$query="INSERT INTO TAG(nom) VALUES('$value')";
+				$res = bdd()->query($query);
 			}
-			return true;
-		}
+	
+			foreach($tags as $value){
 
-		return false;
+				$query ="INSERT INTO TAGSUJET(idSujet,nomTag) VALUES ($id_sujet,'$value')";
+				bdd()->query($query);
+			}
+		}
+		return $res;
+
+
 	}
 
 	/**
@@ -51,7 +57,15 @@
 	*/
 	function recupere_tag() {
 		$sql = "SELECT * FROM TAG";
-        return bdd()->query($sql);
+		$res = bdd()->query($sql);
+		$tags = array();
+
+		foreach($res as $value){
+
+			$tags[]= $value["nom"];
+		}
+
+        return $tags;
 	}
 
 	/**
@@ -59,12 +73,15 @@
 		@return la liste des tags selon un sujet.
 	*/
 	function recupere_tag_par_sujet($id_sujet) {
-		$select = bdd()->query("SELECT * FROM MEMBRE WHERE id_sujet='$id_sujet'");
-        $sujet = array();
+		$select = bdd()->query("SELECT nomTag FROM TAGSUJET WHERE idSujet='$id_sujet'");
+        $tags = array();
 
-        if($result = $select->fetch_assoc()){
-            $sujet['id_sujet'] = $result['id_sujet'];
-        }
-        return $result();
+		foreach($select as $value){
+
+			$tags[]= $value["nomTag"];
+
+		}
+
+        return $tags;
 	}
 

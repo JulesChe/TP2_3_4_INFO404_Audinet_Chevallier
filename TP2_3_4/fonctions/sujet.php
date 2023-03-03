@@ -15,7 +15,21 @@
 			CONSTRAINT fk_SUJET_MEMBRE FOREIGN KEY (idAuteur) REFERENCES MEMBRE (id)
 		)";
 
+		$sql_create_membre = "CREATE TABLE IF NOT EXISTS MEMBRESUJET(
+
+			id INT NOT NULL AUTO_INCREMENT,
+			idMembre INT,
+			idSujet INT,
+			CONSTRAINT pk_MEMBRESUJET PRIMARY KEY (id),
+			CONSTRAINT fk_MEMBRES FOREIGN KEY (idMembre) REFERENCES MEMBRE (id),
+			CONSTRAINT fk_SUJETM FOREIGN KEY (idSujet) REFERENCES SUJET (id)
+
+		)";
+
+
+
 		bdd()->query($sql_create);
+		bdd()->query($sql_create_membre);
 	}
 
 	/**
@@ -29,12 +43,14 @@
 	*/
 	function ajoute_sujet($titre, $id_auteur, $description, $image, $tags) {
 
-		$sql_insert = "INSERT INTO `SUJET`(`titre`, `description`, `image`, `idAuteur`) VALUES ($titre,$description,$image,$id_auteur)";
-		bdd()->query($sql_insert);
+		$sql_insert = "INSERT INTO `SUJET`(`titre`, `description`, `image`,`date_creation`, `idAuteur`) VALUES ('$titre','$description','$image',now(),$id_auteur)";
+		$res = bdd()->query($sql_insert);
 		$last_id = bdd()->insert_id;
 		ajoute_tag($last_id,$tags);
 
-		return true;
+		var_dump($last_id);
+
+		return $res;
     }
 
 
@@ -58,7 +74,33 @@
 		@return l'objet sujet s'il est trouvé avec : id, titre, login (le login de l'auteur), date_creation, description, image, favori (s'il est favori de l'utilisateur connecté); null sinon.
 	*/
 	function recupere_sujet_par_id($id_sujet, $id_utilisateur) {
-		return null;
+		
+		$sql_select = "SELECT s.id, s.titre, s.description, s.image, s.date_creation, m.login, 
+		EXISTS(SELECT * FROM MEMBRESUJET ms WHERE ms.idMembre = $id_utilisateur AND ms.idSujet = s.id) AS favori
+		FROM `SUJET` s 
+		JOIN MEMBRE m ON m.id = s.idAuteur 
+		WHERE s.id = $id_sujet
+		";
+
+		$res = bdd()->query($sql_select);
+
+		$objSuj = array();
+
+		foreach($res as $value){
+
+			$objSuj[] = array(
+				"id" => $value["id"],
+				"titre" => $value["titre"],
+				"login" => $value["login"],
+				"date_creation" => $value["date_creation"],
+				"description" => $value["description"],
+				"image" => $value["image"],
+				"favori" => $value["favori"]
+			);
+		}
+
+		return $objSuj;
+
 	}
 
 	/**
@@ -68,7 +110,33 @@
 		@return la liste des sujets avec : id, titre, login (le login de l'auteur), date_creation, description, image, favori (s'il est favori de l'utilisateur connecté).
 	*/
 	function recupere_sujet_par_tag($tags, $id_utilisateur) {
-		return array();
+
+	
+		$listetag = implode("','", $tags);
+		$sql_select_tag = "SELECT s.id, s.titre, m.login, s.date_creation, s.description, s.image,
+		EXISTS(SELECT * FROM MEMBRESUJET ms WHERE ms.idMembre = $id_utilisateur AND s.id = ms.idSujet) AS favori 
+		FROM TAGSUJET ts 
+		JOIN SUJET s ON s.id = ts.idSujet 
+		JOIN MEMBRE m ON s.idAuteur = m.id 
+		WHERE ts.nomTag IN ('$listetag')";
+
+		$res = bdd()->query($sql_select_tag);
+
+		$objSuj = array();
+
+		foreach($res as $value){
+
+			$objSuj[] = array(
+				"id" => $value["id"],
+				"titre" => $value["titre"],
+				"login" => $value["login"],
+				"date_creation" => $value["date_creation"],
+				"description" => $value["description"],
+				"image" => $value["image"],
+				"favori" => $value["favori"]
+			);
+		}
+		return $objSuj;
 	}
 
 	/**
@@ -80,6 +148,30 @@
 		@return la liste des sujets avec : id, titre, login (le login de l'auteur), date_creation, description, image, favori (s'il est favori de l'utilisateur connecté).
 	*/
 	function recupere_sujet_par_date($limite, $decalage, $id_utilisateur, $id_auteur = 0) {
+
+		if($id_auteur <= 0){
+
+			$sql_select_limite ="SELECT s.id, s.titre, m.login, s.date_creation, s.description, s.image,
+			EXISTS(SELECT * FROM MEMBRESUJET ms WHERE ms.idMembre = $id_utilisateur AND s.id = ms.idSujet) AS favori 
+			FROM SUJET s
+			LIMIT $limite OFFSET $decalage
+			JOIN TAGSUJET ts ON s.id = ts.idSujet 
+			JOIN MEMBRE m ON s.idAuteur = m.id 
+			WHERE s.date_creation = "
+
+		} else {
+
+		$sql_select_limite ="SELECT s.id, s.titre, m.login, s.date_creation, s.description, s.image,
+		EXISTS(SELECT * FROM MEMBRESUJET ms WHERE ms.idMembre = $id_utilisateur AND s.id = ms.idSujet) AS favori 
+		FROM SUJET s
+		LIMIT $limite OFFSET $decalage
+		JOIN TAGSUJET ts ON s.id = ts.idSujet 
+		JOIN MEMBRE m ON s.idAuteur = m.id 
+		WHERE s.date_creation = "
+		}
+
+
+
 		return array();
 	}
 
